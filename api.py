@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 import requests
 
 app = Flask(__name__)
@@ -15,8 +15,14 @@ def get_cpf_info(cpf):
         'sec-ch-ua-platform': '"Windows"',
     }
 
-    response = requests.get(f'https://servicos-cloud.saude.gov.br/pni-bff/v1/cidadao/cpf/{cpf}', headers=headers)
-    data = response.json()
+    try:
+        response = requests.get(f'https://servicos-cloud.saude.gov.br/pni-bff/v1/cidadao/cpf/{cpf}', headers=headers)
+        response.raise_for_status()  # Isso levantará uma exceção para status de erro HTTP
+        data = response.json()
+    except requests.exceptions.RequestException as e:
+        return jsonify({"status": 500, "error": str(e)}), 500
+    except requests.exceptions.JSONDecodeError:
+        return jsonify({"status": 500, "error": "Invalid JSON response"}), 500
 
     if 'records' in data and len(data['records']) > 0:
         record = data['records'][0]
@@ -44,7 +50,6 @@ def get_cpf_info(cpf):
                 "nome_mae": record.get("nomeMae", ""),
                 "nome_pai": record.get("nomePai", "")
             },
-           
         }
     else:
         formatted_data = {
@@ -55,5 +60,4 @@ def get_cpf_info(cpf):
     return jsonify(formatted_data)
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5001)
-
+    app.run(debug=True, host='0.0.0.0', port=5000)
