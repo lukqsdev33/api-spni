@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
 import requests
 
 app = Flask(__name__)
@@ -16,7 +16,7 @@ def get_cpf_info(cpf):
     }
 
     try:
-        response = requests.get(f'https://servicos-cloud.saude.gov.br/pni-bff/v1/cidadao/cpf/{cpf}', headers=headers)
+        response = requests.get(f'https://servicos-cloud.saude.gov.br/pni-bff/v1/cidadao/cpf/{cpf}', headers=headers, verify=False)
         response.raise_for_status()  # Isso levantará uma exceção para status de erro HTTP
         data = response.json()
     except requests.exceptions.RequestException as e:
